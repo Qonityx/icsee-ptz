@@ -97,6 +97,11 @@ CONFIGS: dict[str, ConfigSpec] = {
     "Uart.PTZPreset": ConfigSpec(per_channel=True),
     "AVEnc.SystemAbnormalRebootCnt": ConfigSpec(per_channel=True),
     "Record": ConfigSpec(per_channel=True),  # SD card recording
+    # alarm output; on AlarmOutUsedAsLed cameras it drives the warning light.
+    # The whole list is written (seen working on XM232 dual-lens cameras).
+    "Alarm.AlarmOut": ConfigSpec(per_channel=True, channel_suffix=False),
+    # sounds the speaker can play on an alarm, e.g. {"VoiceEnum": 24, ...}
+    "Ability.VoiceTipType": ConfigSpec(per_channel=False),
     # read only status
     "Users": ConfigSpec(per_channel=False, code=1472),
     "WifiRouteInfo": ConfigSpec(per_channel=False, code=1020, live=True),
@@ -112,6 +117,7 @@ ABILITIES = (
     "Camera",
     "Encode264ability",
     "HumanRuleLimit",  # human and vehicle detection options
+    "MotionArea",  # motion detection grid size, e.g. {"GridRow": 7, "GridColumn": 7}
 )
 
 type ICSeeConfigEntry = ConfigEntry[ICSeeData]

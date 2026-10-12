@@ -113,6 +113,35 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         func="async_force_frame",
     )
 
+    percent = vol.All(vol.Coerce(float), vol.Range(min=0, max=100))
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        "set_human_zone",
+        entity_domain=BINARY_SENSOR_DOMAIN,
+        entity_device_classes=[BinarySensorDeviceClass.MOTION],
+        schema={
+            vol.Required("x_min"): percent,
+            vol.Required("y_min"): percent,
+            vol.Required("x_max"): percent,
+            vol.Required("y_max"): percent,
+        },
+        func="async_set_human_zone",
+    )
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        "set_motion_zone",
+        entity_domain=BINARY_SENSOR_DOMAIN,
+        entity_device_classes=[BinarySensorDeviceClass.MOTION],
+        schema={
+            vol.Required("rows"): vol.All(
+                cv.ensure_list, [vol.All(cv.string, vol.Match(r"^[01]+$"))]
+            )
+        },
+        func="async_set_motion_zone",
+    )
+
     async def _discover(*_: object) -> None:
         for camera in await async_discover():
             discovery_flow.async_create_flow(

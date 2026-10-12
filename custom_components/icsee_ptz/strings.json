@@ -115,6 +115,9 @@
       },
       "upnp_ports_open": {
         "name": "UPnP router ports open"
+      },
+      "human_alarm": {
+        "name": "Person detected"
       }
     },
     "sensor": {
@@ -225,6 +228,9 @@
     "siren": {
       "siren": {
         "name": "Siren"
+      },
+      "warning_light": {
+        "name": "Warning light"
       }
     },
     "switch": {
@@ -392,6 +398,9 @@
       },
       "sub_stream_audio": {
         "name": "Sub stream audio"
+      },
+      "alarm_voice": {
+        "name": "Alarm voice"
       }
     },
     "select": {
@@ -605,6 +614,22 @@
           "cbr": "Constant (CBR)",
           "vbr": "Variable (VBR)"
         }
+      },
+      "alarm_output_mode": {
+        "name": "Alarm output",
+        "state": {
+          "auto": "Automatic (on alarm)",
+          "on": "On",
+          "off": "Off"
+        }
+      },
+      "alarm_voice_type": {
+        "name": "Alarm voice sound",
+        "state": {
+          "alarm": "Alarm",
+          "tracking_area": "Entered the tracking area",
+          "custom": "Custom (recorded in the app)"
+        }
       }
     },
     "number": {
@@ -709,6 +734,12 @@
       },
       "wdr_level": {
         "name": "Wide dynamic range level"
+      },
+      "alarm_voice_interval": {
+        "name": "Alarm voice interval"
+      },
+      "tracking_sensitivity_level": {
+        "name": "Motion tracking sensitivity"
       }
     }
   },
@@ -742,6 +773,15 @@
     },
     "audio_convert_failed": {
       "message": "Could not convert the audio for the camera speaker."
+    },
+    "invalid_zone": {
+      "message": "The zone needs 0 <= min < max <= 100 on both axes."
+    },
+    "invalid_motion_zone": {
+      "message": "The motion zone needs {rows} rows of {cols} characters (1 = on, 0 = off) with at least one 1."
+    },
+    "zone_not_supported": {
+      "message": "This camera does not have this detection zone."
     }
   },
   "issues": {
@@ -784,6 +824,38 @@
     "force_frame": {
       "name": "Force frame",
       "description": "Force the camera to send a new frame. Useful to speed up video start."
+    },
+    "set_human_zone": {
+      "name": "Set person detection zone",
+      "description": "Area where the camera's person detection triggers, in percent of the picture (0,0 = top left). On dual-lens cameras it applies to the lens where the camera draws the person boxes.",
+      "fields": {
+        "x_min": {
+          "name": "Left",
+          "description": "Left edge, percent."
+        },
+        "y_min": {
+          "name": "Top",
+          "description": "Top edge, percent."
+        },
+        "x_max": {
+          "name": "Right",
+          "description": "Right edge, percent."
+        },
+        "y_max": {
+          "name": "Bottom",
+          "description": "Bottom edge, percent."
+        }
+      }
+    },
+    "set_motion_zone": {
+      "name": "Set motion detection zone",
+      "description": "Motion detection grid: one string per row, 1 = detect, 0 = ignore. The current grid is in the Person detected sensor attributes.",
+      "fields": {
+        "rows": {
+          "name": "Rows",
+          "description": "One string of 1/0 per grid row, e.g. 1111111."
+        }
+      }
     }
   }
 }

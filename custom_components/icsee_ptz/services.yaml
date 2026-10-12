@@ -63,3 +63,43 @@ force_frame:
       integration: icsee_ptz
       domain: binary_sensor
       device_class: motion
+set_human_zone:
+  target:
+    entity:
+      integration: icsee_ptz
+      domain: binary_sensor
+      device_class: motion
+  fields:
+    x_min:
+      required: true
+      default: 0
+      selector:
+        number: {min: 0, max: 100, step: 1, unit_of_measurement: "%"}
+    y_min:
+      required: true
+      default: 0
+      selector:
+        number: {min: 0, max: 100, step: 1, unit_of_measurement: "%"}
+    x_max:
+      required: true
+      default: 100
+      selector:
+        number: {min: 0, max: 100, step: 1, unit_of_measurement: "%"}
+    y_max:
+      required: true
+      default: 100
+      selector:
+        number: {min: 0, max: 100, step: 1, unit_of_measurement: "%"}
+set_motion_zone:
+  target:
+    entity:
+      integration: icsee_ptz
+      domain: binary_sensor
+      device_class: motion
+  fields:
+    rows:
+      required: true
+      example: ["1111111", "1111111", "1111111", "1111111", "1111111", "1111111", "1111111"]
+      selector:
+        text:
+          multiple: true

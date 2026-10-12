@@ -55,8 +55,9 @@ async def test_entities_created(hass: HomeAssistant, setup_integration) -> None:
         "button.garten_clock_synchronize",
     ]:
         assert entity_id in states, entity_id
-    # Garten has no manual siren ability
-    assert not any(e.startswith("siren.") for e in states)
+    # Garten has no manual siren ability, only the alarm output light
+    assert "siren.garten_siren" not in states
+    assert "siren.garten_warning_light" in states
 
 
 async def test_day_night_select(

@@ -72,6 +72,12 @@ def _param_ex(key: str, field: str | tuple[str, ...], **kwargs: Any):
 
 
 SWITCHES: tuple[ICSeeSwitchEntityDescription, ...] = (
+    # the speaker plays the alarm sound (see Alarm voice sound) on motion/person
+    _event(
+        "alarm_voice",
+        "VoiceEnable",
+        ability="SystemFunction.OtherFunction.SupportAlarmVoiceTips",
+    ),
     _alarm("MotionDetect", "Detect.MotionDetect", "MotionDetect", "motion_detection"),
     # "HumanDection" (sic) is how the camera spells the ability
     _alarm(

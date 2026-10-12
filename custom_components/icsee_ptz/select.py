@@ -46,6 +46,22 @@ class ICSeeSelectEntityDescription(
     aliases: dict[str, Any] | None = None
 
 
+# ---- Alarm voice --------------------------------------------------------
+
+# VoiceEnum -> option; values seen in Ability.VoiceTipType of an XM232 camera
+ALARM_VOICES = {24: "alarm", 523: "tracking_area", 550: "custom"}
+
+
+def _alarm_voice_options(
+    coordinator: ICSeeCoordinator, _channel: int, _value: Any
+) -> list[str]:
+    """The known sounds this camera lists (all known ones if it lists none)."""
+    tips = (coordinator.channel_value("Ability.VoiceTipType", 0) or {}).get("VoiceTip")
+    enums = {t.get("VoiceEnum") for t in tips or [] if isinstance(t, dict)}
+    options = [name for enum, name in ALARM_VOICES.items() if enum in enums]
+    return options or list(ALARM_VOICES.values())
+
+
 # ---- Day/night (image + infrared) mode ------------------------------------
 
 DAY_NIGHT = {
@@ -258,6 +274,27 @@ SELECTS: tuple[ICSeeSelectEntityDescription, ...] = (
         path=("Sensitivity",),
         value_map={0: "low", 1: "medium", 2: "high"},
         ability=OTHER + "SupportDetectTrack",
+        # cameras with values above 2 get the tracking_sensitivity_level number
+        exists_fn=lambda _c, value: value in (0, 1, 2),
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ICSeeSelectEntityDescription(
+        # On AlarmOutUsedAsLed cameras this is the warning light ("siren light")
+        key="alarm_output_mode",
+        translation_key="alarm_output_mode",
+        config="Alarm.AlarmOut",
+        path=("AlarmOutType",),
+        value_map={"AUTO": "auto", "MANUAL": "on", "CLOSE": "off"},
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ICSeeSelectEntityDescription(
+        key="alarm_voice_type",
+        translation_key="alarm_voice_type",
+        config="Detect.MotionDetect",
+        path=("EventHandler", "VoiceType"),
+        value_map=ALARM_VOICES,
+        options_fn=_alarm_voice_options,
+        ability=OTHER + "SupportAlarmVoiceTipsType",
         entity_category=EntityCategory.CONFIG,
     ),
     ICSeeSelectEntityDescription(

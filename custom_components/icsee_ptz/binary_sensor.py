@@ -15,7 +15,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import CONF_CHANNEL, CONF_CHANNEL_COUNT, CONF_PRESET, CONF_STEP, DOMAIN
@@ -38,10 +38,10 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data.coordinator
-    async_add_entities(
-        MotionAlarm(coordinator, channel)
-        for channel in range(entry.data.get(CONF_CHANNEL_COUNT, 1))
-    )
+    channels = range(entry.data.get(CONF_CHANNEL_COUNT, 1))
+    async_add_entities(MotionAlarm(coordinator, channel) for channel in channels)
+    if coordinator.ability("SystemFunction.AlarmFunction.HumanDection"):
+        async_add_entities(HumanAlarm(coordinator, channel) for channel in channels)
     async_add_entities(
         config_entities(coordinator, CONFIG_SENSORS, ICSeeConfigBinarySensor)
     )
@@ -192,6 +192,157 @@ class MotionAlarm(ICSeeEntity, BinarySensorEntity):
 
     async def async_force_frame(self) -> None:
         await _run(self.device.async_force_frame())
+
+    async def async_set_human_zone(
+        self, x_min: float, y_min: float, x_max: float, y_max: float
+    ) -> None:
+        """Person detection area (first rule), in percent of the image."""
+        if not (0 <= x_min < x_max <= 100 and 0 <= y_min < y_max <= 100):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="invalid_zone"
+            )
+        x1, y1, x2, y2 = (_to_coord(v) for v in (x_min, y_min, x_max, y_max))
+        pts = [
+            {"X": x1, "Y": y1},
+            {"X": x2, "Y": y1},
+            {"X": x2, "Y": y2},
+            {"X": x1, "Y": y2},
+        ]
+
+        def mutate(value: dict[str, Any]) -> None:
+            rules = value.get("PedRule")
+            if not rules or not isinstance(rules[0].get("RuleRegion"), dict):
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN, translation_key="zone_not_supported"
+                )
+            rule = rules[0]
+            rule["Enable"] = True
+            rule["RuleType"] = 1  # area (0 = crossing line)
+            rule["RuleRegion"]["Pts"] = pts
+            rule["RuleRegion"]["PtsNum"] = 4
+
+        await self.coordinator.async_update_config(
+            "Detect.HumanDetection", self.channel, mutate
+        )
+
+    async def async_set_motion_zone(self, rows: list[str]) -> None:
+        """Motion grid: one string of 1/0 per row, left column first."""
+        n_rows, n_cols = motion_grid_size(self.coordinator)
+        if (
+            len(rows) != n_rows
+            or any(len(r) != n_cols or set(r) - {"0", "1"} for r in rows)
+            or "1" not in "".join(rows)
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_motion_zone",
+                translation_placeholders={"rows": str(n_rows), "cols": str(n_cols)},
+            )
+
+        def mutate(value: dict[str, Any]) -> None:
+            region = value.get("Region")
+            if not isinstance(region, list) or len(region) < n_rows:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN, translation_key="zone_not_supported"
+                )
+            for r, row in enumerate(rows):
+                mask = sum(1 << c for c, cell in enumerate(row) if cell == "1")
+                region[r] = f"0x{mask:08X}"
+
+        await self.coordinator.async_update_config(
+            "Detect.MotionDetect", self.channel, mutate
+        )
+
+
+ZONE_MAX = 8191  # camera coordinates of detection rules (0..8191)
+HUMAN_EVENTS = frozenset(
+    {"appEventHumanDetectAlarm", "HumanDetect", "HumanDetection", "HumanAlarm"}
+)
+
+
+def _to_coord(percent: float) -> int:
+    return round(percent / 100 * ZONE_MAX)
+
+
+def motion_grid_size(coordinator: ICSeeCoordinator) -> tuple[int, int]:
+    area = coordinator.abilities.get("MotionArea") or {}
+    try:
+        rows, cols = int(area["GridRow"]), int(area["GridColumn"])
+    except (KeyError, TypeError, ValueError):
+        return 18, 22  # the usual XM grid when the camera does not say
+    return rows, cols
+
+
+def zones_of(coordinator: ICSeeCoordinator, channel: int) -> dict[str, Any]:
+    """Current detection zones, for the person sensor attributes."""
+    attrs: dict[str, Any] = {}
+    human = coordinator.channel_value("Detect.HumanDetection", channel) or {}
+    rules = human.get("PedRule") or []
+    if rules and isinstance(rules[0], dict):
+        pts = (rules[0].get("RuleRegion") or {}).get("Pts") or []
+        try:
+            xs = [int(p["X"]) for p in pts]
+            ys = [int(p["Y"]) for p in pts]
+        except (KeyError, TypeError, ValueError):
+            xs = ys = []
+        if xs and ys:
+            pct = lambda v: round(v / ZONE_MAX * 100, 1)  # noqa: E731
+            attrs["human_zone"] = {
+                "x_min": pct(min(xs)),
+                "y_min": pct(min(ys)),
+                "x_max": pct(max(xs)),
+                "y_max": pct(max(ys)),
+                "enabled": bool(rules[0].get("Enable")),
+            }
+    region = (coordinator.channel_value("Detect.MotionDetect", channel) or {}).get(
+        "Region"
+    )
+    if isinstance(region, list):
+        n_rows, n_cols = motion_grid_size(coordinator)
+        out = []
+        for value in region[:n_rows]:
+            try:
+                mask = int(value, 16) if isinstance(value, str) else int(value)
+            except (TypeError, ValueError):
+                mask = 0
+            out.append("".join("1" if mask >> c & 1 else "0" for c in range(n_cols)))
+        attrs["motion_zone"] = out
+    return attrs
+
+
+class HumanAlarm(ICSeeEntity, BinarySensorEntity):
+    """On while the camera reports a person (its own AI), not plain motion."""
+
+    _attr_device_class = BinarySensorDeviceClass.OCCUPANCY
+    _attr_translation_key = "human_alarm"
+
+    def __init__(self, coordinator: ICSeeCoordinator, channel: int) -> None:
+        super().__init__(coordinator, f"human_alarm_{channel}", channel)
+        self._attr_is_on = False
+        self._last: dict[str, Any] = {}
+
+    @property
+    def available(self) -> bool:
+        return self.device.is_connected
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {**zones_of(self.coordinator, self.channel), **self._last}
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self.device.add_alarm_callback(self._on_alarm))
+
+    @callback
+    def _on_alarm(self, what: dict[str, Any]) -> None:
+        if what.get("Channel") != self.channel or what.get("Event") not in HUMAN_EVENTS:
+            return
+        self._attr_is_on = what.get("Status") == "Start"
+        self._last = {
+            "last_event": what.get("Event"),
+            "start_time": what.get("StartTime"),
+        }
+        self.async_write_ha_state()
 
 
 async def _run(coro: Any) -> None:

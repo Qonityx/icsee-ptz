@@ -243,6 +243,16 @@ NUMBERS: tuple[ICSeeNumberEntityDescription, ...] = (
         native_min_value=1,
         native_max_value=6,
         native_step=1,
+        # Some cameras (XM232 dual lens) use levels above 6: the app left 7 and
+        # the camera accepts and reads back 8. Never show a max below the value.
+        max_fn=lambda c, ch: float(
+            max(
+                6,
+                int(
+                    (c.channel_value("Detect.MotionDetect", ch) or {}).get("Level") or 0
+                ),
+            )
+        ),
         ability="SystemFunction.AlarmFunction.MotionDetect",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -290,6 +300,37 @@ NUMBERS: tuple[ICSeeNumberEntityDescription, ...] = (
     ),
     # not used by the official apps; meaning and range inferred
     _event_seconds("motion_alarm_hold", "EventLatch", 0, 300),
+    # minimum pause between two alarm voice messages; range inferred
+    _event_seconds(
+        "alarm_voice_interval",
+        "VoiceTipInterval",
+        0,
+        600,
+        ability=OTHER + "SupportAlarmVoiceTipInterval",
+    ),
+    ICSeeNumberEntityDescription(
+        # Cameras that store a tracking sensitivity above 2 (XM232 dual lens:
+        # 5 set by the app) get a number instead of the low/medium/high select.
+        key="tracking_sensitivity_level",
+        translation_key="tracking_sensitivity_level",
+        config="Detect.DetectTrack",
+        path=("Sensitivity",),
+        native_min_value=0,
+        native_max_value=5,
+        native_step=1,
+        max_fn=lambda c, _ch: float(
+            max(
+                5,
+                int(
+                    (c.channel_value("Detect.DetectTrack", 0) or {}).get("Sensitivity")
+                    or 0
+                ),
+            )
+        ),
+        ability=OTHER + "SupportDetectTrack",
+        exists_fn=lambda _c, value: value not in (0, 1, 2),
+        entity_category=EntityCategory.CONFIG,
+    ),
     ICSeeNumberEntityDescription(
         key="pir_sensitivity",
         translation_key="pir_sensitivity",

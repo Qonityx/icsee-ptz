@@ -292,6 +292,10 @@
    "dwHighObjectType": "0x0",
    "dwLineDirect": "0x7",
    "dwLowObjectType": "0x1"
+  },
+  "MotionArea": {
+   "GridRow": 7,
+   "GridColumn": 7
   }
  },
  "configs": {
@@ -1891,6 +1895,28 @@
      ]
     ]
    }
-  ]
+  ],
+  "Alarm.AlarmOut": [
+   {
+    "AlarmOutStatus": "OPEN",
+    "AlarmOutType": "AUTO"
+   }
+  ],
+  "Ability.VoiceTipType": {
+   "VoiceTip": [
+    {
+     "VoiceEnum": 24,
+     "VoiceText": "Alarm"
+    },
+    {
+     "VoiceEnum": 523,
+     "VoiceText": "Entered the tracking area"
+    },
+    {
+     "VoiceEnum": 550,
+     "VoiceText": "Custom"
+    }
+   ]
+  }
  }
 }

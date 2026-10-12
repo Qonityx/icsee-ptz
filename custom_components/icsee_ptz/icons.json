@@ -165,6 +165,9 @@
       },
       "sub_stream_audio": {
         "default": "mdi:microphone"
+      },
+      "alarm_voice": {
+        "default": "mdi:account-voice"
       }
     },
     "select": {
@@ -248,6 +251,12 @@
       },
       "sub_stream_bitrate_control": {
         "default": "mdi:speedometer"
+      },
+      "alarm_output_mode": {
+        "default": "mdi:alarm-light"
+      },
+      "alarm_voice_type": {
+        "default": "mdi:music-note"
       }
     },
     "number": {
@@ -352,6 +361,12 @@
       },
       "wdr_level": {
         "default": "mdi:contrast-box"
+      },
+      "alarm_voice_interval": {
+        "default": "mdi:timer-sand"
+      },
+      "tracking_sensitivity_level": {
+        "default": "mdi:target-account"
       }
     },
     "button": {
@@ -421,6 +436,9 @@
       },
       "upnp_ports_open": {
         "default": "mdi:router-network"
+      },
+      "human_alarm": {
+        "default": "mdi:account-alert"
       }
     },
     "sensor": {
@@ -458,6 +476,9 @@
     "siren": {
       "siren": {
         "default": "mdi:alarm-light"
+      },
+      "warning_light": {
+        "default": "mdi:alarm-light-outline"
       }
     },
     "text": {
@@ -475,6 +496,12 @@
     },
     "force_frame": {
       "service": "mdi:play"
+    },
+    "set_human_zone": {
+      "service": "mdi:vector-square"
+    },
+    "set_motion_zone": {
+      "service": "mdi:grid"
     }
   }
 }

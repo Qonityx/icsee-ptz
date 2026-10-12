@@ -115,6 +115,9 @@
       },
       "upnp_ports_open": {
         "name": "UPnP: puertos del router abiertos"
+      },
+      "human_alarm": {
+        "name": "Persona detectada"
       }
     },
     "sensor": {
@@ -222,6 +225,9 @@
     "siren": {
       "siren": {
         "name": "Sirena"
+      },
+      "warning_light": {
+        "name": "Sirena luminosa"
       }
     },
     "switch": {
@@ -389,6 +395,9 @@
       },
       "sub_stream_audio": {
         "name": "Flujo secundario: audio"
+      },
+      "alarm_voice": {
+        "name": "Alarma de voz"
       }
     },
     "select": {
@@ -602,6 +611,22 @@
           "cbr": "Constante (CBR)",
           "vbr": "Variable (VBR)"
         }
+      },
+      "alarm_output_mode": {
+        "name": "Salida de alarma",
+        "state": {
+          "auto": "Automática (con alarmas)",
+          "on": "Encendida",
+          "off": "Apagada"
+        }
+      },
+      "alarm_voice_type": {
+        "name": "Sonido de la alarma de voz",
+        "state": {
+          "alarm": "Alarma",
+          "tracking_area": "Ha entrado en el área de seguimiento",
+          "custom": "Personalizado (grabado en la app)"
+        }
       }
     },
     "number": {
@@ -706,6 +731,12 @@
       },
       "wdr_level": {
         "name": "WDR: nivel"
+      },
+      "alarm_voice_interval": {
+        "name": "Intervalo de la alarma de voz"
+      },
+      "tracking_sensitivity_level": {
+        "name": "Movimiento: sensibilidad de seguimiento"
       }
     }
   },
@@ -739,6 +770,15 @@
     },
     "audio_convert_failed": {
       "message": "No se pudo convertir el audio para el altavoz de la cámara."
+    },
+    "invalid_zone": {
+      "message": "La zona necesita 0 <= mín < máx <= 100 en los dos ejes."
+    },
+    "invalid_motion_zone": {
+      "message": "La zona de movimiento necesita {rows} filas de {cols} caracteres (1 = activa, 0 = inactiva) con al menos un 1."
+    },
+    "zone_not_supported": {
+      "message": "Esta cámara no tiene esta zona de detección."
     }
   },
   "issues": {
@@ -781,6 +821,38 @@
     "force_frame": {
       "name": "Forzar fotograma",
       "description": "Hace que la cámara envíe un fotograma nuevo. Sirve para que el vídeo empiece antes."
+    },
+    "set_human_zone": {
+      "name": "Fijar zona de detección de personas",
+      "description": "Área donde salta la detección de personas de la cámara, en porcentaje de la imagen (0,0 = arriba a la izquierda). En cámaras de doble lente se aplica a la lente donde la cámara dibuja los recuadros.",
+      "fields": {
+        "x_min": {
+          "name": "Izquierda",
+          "description": "Borde izquierdo, en %."
+        },
+        "y_min": {
+          "name": "Arriba",
+          "description": "Borde superior, en %."
+        },
+        "x_max": {
+          "name": "Derecha",
+          "description": "Borde derecho, en %."
+        },
+        "y_max": {
+          "name": "Abajo",
+          "description": "Borde inferior, en %."
+        }
+      }
+    },
+    "set_motion_zone": {
+      "name": "Fijar zona de detección de movimiento",
+      "description": "Grilla de detección de movimiento: un texto por fila, 1 = detecta, 0 = ignora. La grilla actual está en los atributos del sensor Persona detectada.",
+      "fields": {
+        "rows": {
+          "name": "Filas",
+          "description": "Un texto de 1/0 por fila de la grilla, p. ej. 1111111."
+        }
+      }
     }
   }
 }

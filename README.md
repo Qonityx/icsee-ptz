@@ -62,6 +62,27 @@ Then, you can use the motion alarm entity in your automations.
 
 <img width="350" alt="image" src="https://github.com/dbuezas/icsee-ptz/assets/777196/06ef6fd4-e04c-4c06-83e1-724db6d65b05">
 
+## Detection zones
+
+The camera's own detection only reacts inside its zones. Two actions change them
+(they target the motion alarm entity, like the PTZ actions):
+
+- `icsee_ptz.set_human_zone`: the person detection area, in percent of the
+  picture (`x_min`, `y_min`, `x_max`, `y_max`; 0,0 = top left). On dual-lens
+  cameras it applies to the lens where the camera draws the person boxes.
+- `icsee_ptz.set_motion_zone`: the motion grid, one string of `1`/`0` per row
+  (`1` = detect). The grid size comes from the camera (`MotionArea`, e.g. 7x7).
+
+```yaml
+action: icsee_ptz.set_human_zone
+target:
+  entity_id: binary_sensor.garden_motion_alarm
+data: {x_min: 0, y_min: 30, x_max: 100, y_max: 100}
+```
+
+The current zones are attributes of the *Person detected* sensor. Whether the
+first motion grid column is the left one was not verified on every camera.
+
 ## Pan, tilt, zoom (PTZ)
 
 icsee_ptz.move: move, zoom and set/goto preseets.
@@ -182,6 +203,7 @@ Entities only appear if the camera supports them.
 | --- | --- | --- |
 | **Alarm and video** | | |
 | Motion alarm | binary_sensor | On while the camera reports an alarm. Motion or human detection must be enabled on the camera, e.g. with the detection switches below. Also the target of the `icsee_ptz.move` action. |
+| Person detected | binary_sensor | On while the camera's own person detection reports someone (not plain motion). Its attributes show the current detection zones (`human_zone` in percent, `motion_zone` grid). |
 | Main stream / Sub stream | camera | Live video in high / low quality. Played by Home Assistant's go2rtc; snapshots come from the stream. Needs the RTSP server switch on. |
 | **PTZ** | | |
 | PTZ up / down / left / right / stop | button | Move the camera. Speed = the Step option. |
@@ -237,14 +259,16 @@ Entities only appear if the camera supports them.
 | Prevent overexposure | switch | Stops close, bright objects (e.g. a face lit by IR) from turning white. |
 | **Detection** | | |
 | Motion detection / Human detection | switch | Turn the camera's detection on / off. These trigger the motion alarm. |
-| Motion sensitivity | number | 1 (low) - 6 (high). |
-| Motion tracking, tracking sensitivity, tracking return time | switch/select/number | The camera turns to follow moving people, and returns to its start position after the set time. |
+| Motion sensitivity | number | 1 (low) - 6 (high). Cameras that store a higher level (XM232 dual lens: 7-8) get a matching maximum. |
+| Motion tracking, tracking sensitivity, tracking return time | switch/select/number | The camera turns to follow moving people, and returns to its start position after the set time. Cameras that store a tracking sensitivity above 2 get a 0-5 number instead of the low/medium/high select. |
 | Tamper detection / Video loss detection | switch | Alarm when the camera is covered / loses video. |
 | Tamper detection sensitivity | number | 1 (low) - 6 (high). |
 | Human detection sensitivity / Human detection box | select/switch | How easily people are detected / draw a box around them in the video. |
 | Human detection targets | select | Detect people, vehicles or both. Only on cameras that can detect vehicles. |
 | Motion push notification / record / snapshot / beep | switch | What the camera itself does when it detects motion. |
 | Motion warning light / Motion warning light duration | switch/number | Turn on the camera's light when it detects motion, and for how long. |
+| Alarm voice / Alarm voice sound / Alarm voice interval | switch/select/number | The speaker plays an alarm sound when the camera detects motion or a person; which sound (the ones the camera lists, e.g. *Alarm*, *Entered the tracking area*, *Custom*); minimum pause between two messages. |
+| Alarm output | select | *Automatic* (on alarms), *On* or *Off*. On cameras whose alarm output is a light (e.g. the red/blue warning light on top of XM232 dual-lens cameras) this is that light. |
 | Motion recording duration | number | How long the camera records after motion (needs an SD card). |
 | Motion alarm hold time | number | How long an alarm stays active after the last motion. |
 | Motion PIR sensitivity | number | For cameras with a PIR (body heat) sensor. |
@@ -266,6 +290,7 @@ Entities only appear if the camera supports them.
 | Restarts (abnormal) | sensor | How often the camera restarted because its video stopped. |
 | Restarts (network loss) | sensor | How often the camera restarted because the network was lost. |
 | Siren | siren | The camera's built-in alarm siren. |
+| Warning light | siren | The alarm output light (cameras with `AlarmOutUsedAsLed`). On = lit now (optionally for a *duration*), off = back to automatic, so the *Motion warning light* automation keeps working. |
 | **Security** | | |
 | RTSP server | switch | The camera's RTSP video server (port 554). Needed for the camera entities. |
 | Cloud access (P2P) | switch | The XMEye/ICSee cloud connection that lets the apps reach the camera from anywhere. Turn it off if you only use it at home. |
