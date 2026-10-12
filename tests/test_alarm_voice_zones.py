@@ -111,6 +111,8 @@ async def test_human_alarm_only_for_people(
     assert state.attributes["last_event"] == "appEventHumanDetectAlarm"
     assert len(state.attributes["motion_zone"]) == 7
     assert state.attributes["human_zone"]["x_min"] == pytest.approx(1.2)
+    assert state.attributes["human_zone"]["rule_type"] == 1
+    assert state.attributes["motion_zone_columns"] == "left_to_right_unverified"
     mock_device.fire_alarm(
         {"Channel": 0, "Status": "Stop", "Event": "appEventHumanDetectAlarm"}
     )

@@ -12,6 +12,8 @@ CONF_CHANNEL_COUNT = "channel_count"
 CONF_SYSTEM_CAPABILITIES = "system_capabilities"
 # Legacy option (<= 4.x): gated the old experimental entities. Ignored now.
 CONF_EXPERIMENTAL_ENTITIES = "experimental_entities"
+CONF_EXTERNAL_MAIN_STREAM = "external_main_stream"
+CONF_EXTERNAL_SUB_STREAM = "external_sub_stream"
 
 DEFAULT_PORT = 34567
 DEFAULT_USERNAME = "admin"

@@ -293,6 +293,8 @@ def zones_of(coordinator: ICSeeCoordinator, channel: int) -> dict[str, Any]:
                 "x_max": pct(max(xs)),
                 "y_max": pct(max(ys)),
                 "enabled": bool(rules[0].get("Enable")),
+                "rule_type": rules[0].get("RuleType"),
+                "lens": "lower_on_dual_lens",
             }
     region = (coordinator.channel_value("Detect.MotionDetect", channel) or {}).get(
         "Region"
@@ -307,6 +309,7 @@ def zones_of(coordinator: ICSeeCoordinator, channel: int) -> dict[str, Any]:
                 mask = 0
             out.append("".join("1" if mask >> c & 1 else "0" for c in range(n_cols)))
         attrs["motion_zone"] = out
+        attrs["motion_zone_columns"] = "left_to_right_unverified"
     return attrs
 
 

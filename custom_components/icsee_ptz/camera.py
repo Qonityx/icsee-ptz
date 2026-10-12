@@ -14,7 +14,12 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import CONF_CHANNEL_COUNT, DOMAIN
+from .const import (
+    CONF_CHANNEL_COUNT,
+    CONF_EXTERNAL_MAIN_STREAM,
+    CONF_EXTERNAL_SUB_STREAM,
+    DOMAIN,
+)
 from .coordinator import ICSeeConfigEntry, ICSeeCoordinator
 from .entity import ICSeeEntity
 
@@ -87,8 +92,19 @@ class ICSeeCamera(ICSeeEntity, Camera):
             self.hass.async_create_task(self.async_refresh_providers())
         super()._handle_coordinator_update()
 
+    def _external(self) -> str | None:
+        key = (
+            CONF_EXTERNAL_MAIN_STREAM
+            if self._subtype == 0
+            else CONF_EXTERNAL_SUB_STREAM
+        )
+        url = str(self.coordinator.config_entry.options.get(key) or "").strip()
+        return url or None
+
     @property
     def available(self) -> bool:
+        if self._external():
+            return self.device.is_connected
         rtsp = _rtsp(self.coordinator)
         return self.device.is_connected and (rtsp is None or bool(rtsp.get("IsServer")))
 
@@ -98,6 +114,10 @@ class ICSeeCamera(ICSeeEntity, Camera):
         return True
 
     async def stream_source(self) -> str | None:
+        if external := self._external():
+            # One video client on these cameras. Play the Mac's go2rtc restream
+            # instead of opening a second RTSP session to the camera.
+            return external
         device = self.device
         user = quote(device.username, safe="")
         password = quote(device.password, safe="")

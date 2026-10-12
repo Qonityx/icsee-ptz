@@ -17,5 +17,5 @@
   "requirements": [
     "getmac>=0.9.5"
   ],
-  "version": "5.2.0"
+  "version": "5.2.1"
 }

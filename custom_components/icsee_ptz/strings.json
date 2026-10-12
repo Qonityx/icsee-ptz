@@ -79,12 +79,14 @@
     "step": {
       "init": {
         "title": "PTZ defaults",
-        "description": "Default PTZ parameters. Step means speed. Preset is only used by SetPreset/GotoPreset/ClearPreset. Channel is usually 0. By default, PTZ buttons are only created for this channel.",
+        "description": "Default PTZ parameters. Step means speed. Preset is only used by SetPreset/GotoPreset/ClearPreset. Channel is usually 0. By default, PTZ buttons are only created for this channel. External stream URLs make Home Assistant play a restream (for example the go2rtc on your LAN) instead of opening RTSP on the camera. Leave them empty to use the camera directly.",
         "data": {
           "channel": "Channel",
           "step": "Step",
           "preset": "Preset",
-          "add_ptz_buttons_all_channels": "Add PTZ buttons for all channels"
+          "add_ptz_buttons_all_channels": "Add PTZ buttons for all channels",
+          "external_main_stream": "External main stream URL",
+          "external_sub_stream": "External sub stream URL"
         }
       }
     }

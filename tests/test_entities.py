@@ -240,6 +240,29 @@ async def test_camera_needs_rtsp(
         "rtsp://192.0.2.10:554/user=admin&password=secret&channel=1&stream=1.sdp?real_stream"
     )
 
+async def test_external_stream_does_not_open_camera_rtsp(
+    hass: HomeAssistant, mock_device, config_entry
+):
+    """A restream URL keeps HA off the camera's single video client."""
+    from homeassistant.components.camera import async_get_stream_source
+
+    config_entry.options = {
+        **config_entry.options,
+        "external_main_stream": "rtsp://192.168.2.61:8554/cam_main",
+        "external_sub_stream": "rtsp://192.168.2.61:8554/cam_sub",
+    }
+    config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    # fixture RTSP server is off; the cameras would be unavailable without the URLs
+    assert hass.states.get("camera.garten_main_stream").state != "unavailable"
+    assert await async_get_stream_source(hass, "camera.garten_main_stream") == (
+        "rtsp://192.168.2.61:8554/cam_main"
+    )
+    assert await async_get_stream_source(hass, "camera.garten_sub_stream") == (
+        "rtsp://192.168.2.61:8554/cam_sub"
+    )
+
 
 async def test_speaker_volume(
     hass: HomeAssistant, setup_integration, mock_device

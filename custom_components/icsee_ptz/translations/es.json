@@ -79,12 +79,14 @@
     "step": {
       "init": {
         "title": "Valores PTZ predeterminados",
-        "description": "Parámetros PTZ predeterminados. Paso significa velocidad. El preset solo lo usan SetPreset/GotoPreset/ClearPreset. El canal suele ser 0. Por defecto, los botones PTZ solo se crean para este canal.",
+        "description": "Parámetros PTZ predeterminados. Paso significa velocidad. El preset solo lo usan SetPreset/GotoPreset/ClearPreset. El canal suele ser 0. Por defecto, los botones PTZ solo se crean para este canal. Las URLs externas hacen que Home Assistant reproduzca un reenvío (por ejemplo el go2rtc de tu red) en vez de abrir RTSP en la cámara. Dejalas vacías para usar la cámara directo.",
         "data": {
           "channel": "Canal",
           "step": "Paso",
           "preset": "Preset",
-          "add_ptz_buttons_all_channels": "Añadir botones PTZ para todos los canales"
+          "add_ptz_buttons_all_channels": "Añadir botones PTZ para todos los canales",
+          "external_main_stream": "URL del stream principal externo",
+          "external_sub_stream": "URL del stream secundario externo"
         }
       }
     }

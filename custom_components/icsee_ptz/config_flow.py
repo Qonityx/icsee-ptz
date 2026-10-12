@@ -38,6 +38,8 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_ADD_PTZ_BUTTONS_ALL_CHANNELS,
+    CONF_EXTERNAL_MAIN_STREAM,
+    CONF_EXTERNAL_SUB_STREAM,
     CONF_CHANNEL,
     CONF_CHANNEL_COUNT,
     CONF_PRESET,
@@ -346,6 +348,14 @@ class OptionsFlowHandler(OptionsFlow):
                         CONF_ADD_PTZ_BUTTONS_ALL_CHANNELS,
                         default=options.get(CONF_ADD_PTZ_BUTTONS_ALL_CHANNELS, False),
                     ): cv.boolean,
+                    vol.Optional(
+                        CONF_EXTERNAL_MAIN_STREAM,
+                        default=options.get(CONF_EXTERNAL_MAIN_STREAM, ""),
+                    ): cv.string,
+                    vol.Optional(
+                        CONF_EXTERNAL_SUB_STREAM,
+                        default=options.get(CONF_EXTERNAL_SUB_STREAM, ""),
+                    ): cv.string,
                 }
             ),
         )
